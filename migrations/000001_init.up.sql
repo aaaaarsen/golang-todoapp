@@ -1,31 +1,27 @@
 CREATE SCHEMA todoapp;
 
 CREATE TABLE todoapp.users (
-    id              SERIAL                      PRIMARY KEY,
-    version         BIGINT          NOT NULL    DEFAULT 1,
-    full_name       VARCHAR(100)    NOT NULL    CHECK (char_length(full_name) BETWEEN 3 AND 100),
-    phone_number    VARCHAR(15)                 CHECK (
-        phone_number ~ '^\+[0-9]+$'
-        AND
-        char_length(phone_number) BETWEEN 10 AND 15
-    )
+    id              BIGSERIAL                   PRIMARY KEY,
+    version         INT             NOT NULL    DEFAULT 1,
+    full_name       VARCHAR(100)    NOT NULL,
+    phone_number    VARCHAR(15),
+    created_at      TIMESTAMPTZ     NOT NULL    DEFAULT NOW()
 );
 
 CREATE TABLE todoapp.tasks (
-    id              SERIAL                      PRIMARY KEY,
-    version         BIGINT          NOT NULL    DEFAULT 1,
-    title           VARCHAR(100)    NOT NULL    CHECK (char_length(title) BETWEEN 1 AND 100),
-    description     VARCHAR(1000)               CHECK (char_length(description) BETWEEN 1 AND 1000),
-    completed       BOOLEAN         NOT NULL,
-    created_at      TIMESTAMPTZ     NOT NULL,
+    id              BIGSERIAL                   PRIMARY KEY,
+    version         INT             NOT NULL    DEFAULT 1,
+    user_id         BIGINT          NOT NULL    REFERENCES todoapp.users(id) ON DELETE CASCADE,
+    title           VARCHAR(255)    NOT NULL,
+    description     TEXT,
+    deadline        TIMESTAMPTZ,
+    importance      INT             NOT NULL    DEFAULT 1,
+    category        TEXT            NOT NULL    DEFAULT 'personal',
+    completed       BOOLEAN         NOT NULL    DEFAULT FALSE,
     completed_at    TIMESTAMPTZ,
-
-    CHECK (
-        (completed=FALSE AND completed_at IS NULL)
-        OR
-        (completed=TRUE AND completed_at IS NOT NULL AND completed_at >= created_at)
-    ),
-
-    author_user_id  INTEGER         NOT NULL    REFERENCES todoapp.users(id)
-)
-
+    priority_score  FLOAT,
+    priority_level  TEXT,
+    priority_reason TEXT,
+    last_updated_at TIMESTAMPTZ     NOT NULL    DEFAULT NOW(),
+    created_at      TIMESTAMPTZ     NOT NULL    DEFAULT NOW()
+);
